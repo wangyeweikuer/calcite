@@ -453,6 +453,7 @@ public abstract class Project extends SingleRel implements Hintable {
    * Returns a permutation, if this projection is merely a permutation of its
    * input fields; otherwise null.
    */
+  // md: 这个project的列需要上下一一映射，才能返回一个Permutation
   public static @Nullable Permutation getPermutation(int inputFieldCount,
       List<? extends RexNode> projects) {
     final int fieldCount = projects.size();

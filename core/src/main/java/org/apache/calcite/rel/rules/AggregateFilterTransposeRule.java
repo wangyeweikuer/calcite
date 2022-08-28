@@ -56,6 +56,9 @@ import java.util.List;
  * @see org.apache.calcite.rel.rules.FilterAggregateTransposeRule
  * @see CoreRules#AGGREGATE_FILTER_TRANSPOSE
  */
+// md: 不一定会提升性能，但至少提供了一种新的plan，增加优化空间，filter和agg以及join和agg一样，谁先谁后都有性能更好的可能性；
+//  有些rule看上去会提升效率（比如消除类rule，但也可能消除了一部分优化空间），而有些rule则提供更多的plan增加优化空间，
+//  从而提供了更多的优化机会，但同样这受限于整体的优化时间上限；
 @Value.Enclosing
 public class AggregateFilterTransposeRule
     extends RelRule<AggregateFilterTransposeRule.Config>

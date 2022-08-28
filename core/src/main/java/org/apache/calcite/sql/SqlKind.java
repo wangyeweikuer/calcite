@@ -78,6 +78,8 @@ import java.util.Set;
  * <p>(If we were using Scala, {@link SqlOperator} would be a case
  * class, and we wouldn't need {@code SqlKind}. But we're not.)
  */
+// md: 从这里可以看到，SqlOperator本质上也是一种SqlKind，但那种用SqlOperator来代替而不是SqlKind（我理解应该是对应的结构
+//  过于复杂导致的, SqlKind一般都比较简单的算子等，而像函数这些都放到SqlOperator里去了）
 public enum SqlKind {
   //~ Static fields/initializers ---------------------------------------------
 

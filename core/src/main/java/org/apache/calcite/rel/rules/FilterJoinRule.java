@@ -157,7 +157,7 @@ public abstract class FilterJoinRule<C extends FilterJoinRule.Config>
     // into for the same reason.
     if (RelOptUtil.classifyFilters(
         join,
-        joinFilters,
+        joinFilters,// md: 这次是把on条件，再尝试下推
         false,
         joinType.canPushLeftFromWithin(),
         joinType.canPushRightFromWithin(),
@@ -194,6 +194,7 @@ public abstract class FilterJoinRule<C extends FilterJoinRule.Config>
             .addAll(RelOptUtil.getFieldTypeList(rightRel.getRowType())).build();
     final RexNode joinFilter =
         RexUtil.composeConjunction(rexBuilder,
+            // md：为什么要修正？因为原来的filter是从其他relNode拿过来的，这次要基于底层relNode重新修正
             RexUtil.fixUp(rexBuilder, joinFilters, fieldTypes));
 
     // If nothing actually got pushed and there is nothing leftover,
@@ -278,7 +279,7 @@ public abstract class FilterJoinRule<C extends FilterJoinRule.Config>
    */
   private static List<Set<RexInputRef>> splitEqualSets(List<RexNode> rexNodes,
       List<RexNode> leftNodes) {
-    final List<Set<RexInputRef>> equalSets = new ArrayList<>();
+    final List<Set<RexInputRef>> equalSets = new ArrayList<>();// md: 这里的set是指所有都相等的列的集合
     for (RexNode rexNode : rexNodes) {
       if (rexNode.isA(SqlKind.EQUALS)) {
         final RexNode op1 = ((RexCall) rexNode).getOperands().get(0);
@@ -335,6 +336,7 @@ public abstract class FilterJoinRule<C extends FilterJoinRule.Config>
       }
       // Add left side conditions.
       if (leftSet.size() > 1) {
+        // md: 这里为什么不做任意组合呢？
         for (int i = 1; i < leftSet.size(); ++i) {
           result.add(
               rexBuilder.makeCall(SqlStdOperatorTable.EQUALS,
@@ -353,6 +355,7 @@ public abstract class FilterJoinRule<C extends FilterJoinRule.Config>
       }
       // Only need one equal condition for each equal set.
       if (leftSet.size() > 0 && rightSet.size() > 0) {
+        // md: 这里为什么不做任意组合呢？
         result.add(
             rexBuilder.makeCall(SqlStdOperatorTable.EQUALS,
                 leftSet.get(0),

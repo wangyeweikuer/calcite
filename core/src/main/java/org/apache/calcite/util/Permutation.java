@@ -407,6 +407,7 @@ public class Permutation implements Mapping, Mappings.TargetMapping {
   /**
    * Returns whether this is the identity permutation.
    */
+  // md: 完全是相同index做一一映射
   @Override public boolean isIdentity() {
     for (int i = 0; i < targets.length; i++) {
       if (targets[i] != i) {

@@ -349,6 +349,7 @@ public class RelBuilder {
    * that are not supported by the builder. If, while creating such expressions,
    * you need to use previously built expressions as inputs, call
    * {@link #build()} to pop those inputs. */
+  // md: 这个是一个好方法，递归构建一批节点
   public RelBuilder push(RelNode node) {
     stack.push(new Frame(node));
     return this;

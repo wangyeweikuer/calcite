@@ -2764,6 +2764,13 @@ public abstract class RelOptUtil {
 
     for (RexNode filter : aboveFilters) {
       if (joinType.generatesNullsOnLeft()
+          // md: 这里很有意思，因为right/full outer join，那左表：
+          //  1）不存在未join上的行，效果类似于inner/left join
+          //  2）存在未join上的行，其对应的列都为null；
+          //  那么如果对应的filter表达式，要么：
+          //  1）用到这些null值列，从而产生了notTrue（null或false）的结果，最终这些行需要被过滤掉
+          //  2）没用到这些null值列，也就是说只用了right表的列，从而产生了notTrue的结果，最终这些行也都要被过滤掉
+          //  所以最终效果，跟没有right outer join一样，可以转化成inner/left join
           && Strong.isNotTrue(filter, leftBitmap)) {
         joinType = joinType.cancelNullsOnLeft();
       }
@@ -2797,7 +2804,7 @@ public abstract class RelOptUtil {
   public static boolean classifyFilters(
       RelNode joinRel,
       List<RexNode> filters,
-      boolean pushInto,
+      boolean pushInto,// md: 这里是指只push到join condition中，所以只能推给inner和semi join
       boolean pushLeft,
       boolean pushRight,
       List<RexNode> joinFilters,
@@ -2828,9 +2835,12 @@ public abstract class RelOptUtil {
       // REVIEW - are there any expressions that need special handling
       // and therefore cannot be pushed?
 
+      // md: contains是指所有filter的列都在左表中；只有joinType可以推左input，同时filter中的列也都在左input上，
+      //  才真正达到可下推到左input的完整约束；
       if (pushLeft && leftBitmap.contains(inputBits)) {
         // ignore filters that always evaluate to true
         if (!filter.isAlwaysTrue()) {
+          // md: 如果永真，也就不需要下推给left input了
           // adjust the field references in the filter to reflect
           // that fields in the left now shift over by the number
           // of system fields
@@ -2862,7 +2872,7 @@ public abstract class RelOptUtil {
                   nTotalFields,
                   rightFields,
                   filter);
-          rightFilters.add(shiftedFilter);
+          rightFilters.add(shiftedFilter);// md: 这里很关键，已经为所有filter相对右input做过偏移了
         }
         filtersToRemove.add(filter);
 
@@ -3188,6 +3198,8 @@ public abstract class RelOptUtil {
     final int bottomCount = RexUtil.nodeCount(project.getProjects());
     final int topCount = RexUtil.nodeCount(nodes);
     final int mergedCount = RexUtil.nodeCount(list);
+    // md：不能过于膨胀，可能因为过于膨胀，内部很多可复用的表达式都被展开+重复计算了，
+    //  没有odps中那种公共表达式复用+lazy执行的功能
     if (mergedCount > bottomCount + topCount + bloat) {
       // The merged expression is more complex than the input expressions.
       // Do not merge.
@@ -3196,6 +3208,7 @@ public abstract class RelOptUtil {
     return list;
   }
 
+  // md: 将当前project中对下一层input的inputRef引用，直接换成下一层project的output的RexNode
   private static RexShuttle pushShuttle(final Project project) {
     return new RexShuttle() {
       @Override public RexNode visitInputRef(RexInputRef ref) {
@@ -4553,6 +4566,7 @@ public abstract class RelOptUtil {
    * Walks an expression tree, converting the index of RexInputRefs based on
    * some adjustment factor.
    */
+  // md: 按照调整值，为每个inputRef做位移
   public static class RexInputConverter extends RexShuttle {
     protected final RexBuilder rexBuilder;
     private final @Nullable List<RelDataTypeField> srcFields;

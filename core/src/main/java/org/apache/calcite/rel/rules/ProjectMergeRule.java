@@ -84,6 +84,9 @@ public class ProjectMergeRule
     return topProject.getConvention() == bottomProject.getConvention();
   }
 
+  // md: 两种方式可被合并：
+  //  1）上下两个project都是简单映射；
+  //  2）上面的project有复杂的表达式计算，那就将上层表达式中的inputRef，替换成下层表达式的output对应位置的RexNode
   @Override public void onMatch(RelOptRuleCall call) {
     final Project topProject = call.rel(0);
     final Project bottomProject = call.rel(1);

@@ -57,6 +57,7 @@ public class ProjectRemoveRule
 
   @Override public void onMatch(RelOptRuleCall call) {
     Project project = call.rel(0);
+    // md: 完全是identity映射（1-1，2-2，……）时，就可以消除project
     assert isTrivial(project);
     RelNode stripped = project.getInput();
     if (stripped instanceof Project) {

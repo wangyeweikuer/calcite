@@ -158,18 +158,25 @@ public enum JoinRelType {
   /** Returns whether this join type accepts pushing predicates from above into its predicate. */
   @API(since = "1.28", status = API.Status.EXPERIMENTAL)
   public boolean canPushIntoFromAbove() {
+    // md: 虽然semi经常搭配left使用，但本质上如果join condition不满足，跟inner一样不会输出结果，所以条件是可以下推的
     return (this == INNER) || (this == SEMI);
   }
 
   /** Returns whether this join type accepts pushing predicates from above into its left input. */
   @API(since = "1.28", status = API.Status.EXPERIMENTAL)
   public boolean canPushLeftFromAbove() {
+    // md: 如果一个条件只跟左表相关时，同时join类型也是左相关时，就可以下推到左侧；因为早晚都要围绕左表做数据过滤，
+    //  那么无论在join之上的filter，还是join的左侧input，结果都一样；
+    //
+    // md：但唯独不能合入join condition内部，因为某条数据在filter中不匹配时会被过滤掉的（即使是left或full join），
+    //  但放到join condition中时，如果joinType为left/full join时，就会保留这行数据，结果集出错；
     return (this == INNER) || (this == LEFT) || (this == SEMI) || (this == ANTI);
   }
 
   /** Returns whether this join type accepts pushing predicates from above into its right input. */
   @API(since = "1.28", status = API.Status.EXPERIMENTAL)
   public boolean canPushRightFromAbove() {
+    // md: 道理同上；
     return (this == INNER) || (this == RIGHT);
   }
 

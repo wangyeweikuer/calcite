@@ -76,6 +76,7 @@ import static java.util.Objects.requireNonNull;
  * <p>In many cases, the formal/actual distinction is clear from context, in
  * which case we drop these qualifiers.
  */
+// md: SqlOperator是一个算子的类型，而不是一个算子本身；
 public abstract class SqlOperator {
   //~ Static fields/initializers ---------------------------------------------
 

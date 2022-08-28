@@ -2828,6 +2828,7 @@ public class RexUtil {
 
   /** Shuttle that fixes up an expression to match changes in nullability of
    * input fields. */
+  // md: 专门修正列的nullable属性，与输出结果列对齐
   public static class FixNullabilityShuttle extends RexShuttle {
     private final List<RelDataType> typeList;
     private final RexBuilder rexBuilder;
@@ -2839,7 +2840,7 @@ public class RexUtil {
     }
 
     @Override public RexNode visitInputRef(RexInputRef ref) {
-      final RelDataType rightType = typeList.get(ref.getIndex());
+      final RelDataType rightType = typeList.get(ref.getIndex());// md: 这里的right是指'正确的'的意思，不是'右边'的意思
       final RelDataType refType = ref.getType();
       if (refType.equals(rightType)) {
         return ref;

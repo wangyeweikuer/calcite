@@ -55,6 +55,7 @@ import java.util.Map;
  *   <li>{@code p1 OR p2} is strong if p1 and p2 are strong
  * </ul>
  */
+// md: 也就是说，Strong提现在，只要有参数为UNKNOWN或者null，结果就为null，表达很"强势的拒绝null值"的感觉
 public class Strong {
   private static final Map<SqlKind, Policy> MAP = createPolicyMap();
 
@@ -64,6 +65,7 @@ public class Strong {
 
   /** Returns a checker that consults a bit set to find out whether particular
    * inputs may be null. */
+  // md: 给定一批可能为null的列的情况下，再看这个Strong
   public static Strong of(final ImmutableBitSet nullColumns) {
     return new Strong() {
       @Override public boolean isNull(RexInputRef ref) {
@@ -159,12 +161,14 @@ public class Strong {
     return operands.stream().allMatch(Strong::isStrong);
   }
 
+  // md: 只可能返回false或者null的情况
   /** Returns whether the analyzed expression will definitely not return true
    * (equivalently, will definitely return null or false). */
   public boolean isNotTrue(RexNode node) {
     switch (node.getKind()) {
     // TODO Enrich with more possible cases?
     case IS_NOT_NULL:
+			//md: is not null的话，就不是一个strong类型的表达式，因为无论如何都只会返回true或false
       return isNull(((RexCall) node).getOperands().get(0));
     case OR:
       return allNotTrue(((RexCall) node).getOperands());
@@ -352,6 +356,7 @@ public class Strong {
   public enum Policy {
     /** This kind of expression is never null. No need to look at its arguments,
      * if it has any. */
+    // md: 某个算子无论如何都不会返回null，哪怕参数为null
     NOT_NULL,
 
     /** This kind of expression has its own particular rules about whether it
